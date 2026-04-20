@@ -23,7 +23,7 @@ class Event(models.Model):
                           ]
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True)
-    description = models.TextField()
+    description = models.TextField(max_length= 500)
     category = models.CharField(max_length=50, choices=CategoryChoices)
     event_type =models.CharField(max_length=20, choices= event_type_choices)
     organizer_name =models.CharField(max_length=200)
@@ -68,3 +68,7 @@ class Event(models.Model):
     class Meta:
          ordering = ['start_datetime']
 
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(unique=True)
+    description = models.TextField(max_length=500)
+    category = models.CharField(max_length=50, choices=CategoryChoices)
