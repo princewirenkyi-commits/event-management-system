@@ -13,4 +13,6 @@ class Attendee(models.Model):
     is_active = models.BooleanField(default=True)
     
     #-----Methods------
+def get_full_name(__str__):
+    return first_name+" "+last_name
     
