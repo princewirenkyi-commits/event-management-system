@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
+from attendees.models import Attendee
+
 
 # Create your models here.
 class Event(models.Model):
@@ -59,11 +61,9 @@ class Event(models.Model):
     def is_upcoming(self):
         return self.start_datetime > timezone.now()
 
-    def registered_count(self):
-        return self.eventattendee_set.count()
+   
 
-    def available_slots(self):
-      return self.max_attendees - self.registered_count()
+    
 
     class Meta:
          ordering = ['start_datetime']
