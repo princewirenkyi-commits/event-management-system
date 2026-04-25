@@ -19,7 +19,7 @@ def homepage(request):
     return render(request, 'homepage.html', context)
 
 
-def Events(request):
+def event_list(request):
     events = Event.objects.all()
     category = request.GET.get('category')
     event_type = request.GET.get('eventType')
@@ -42,7 +42,7 @@ def Events(request):
     return render(request, 'events/events.html',context)
     
 
-def EventDetail(request, slug):
+def event_detail(request, slug):
     event_detail = get_object_or_404(Event, slug=slug)
     
     attendees = EventAttendee.object.filter(event = event)
@@ -59,7 +59,7 @@ def EventDetail(request, slug):
     
     return render(request, 'events/eventDetail.html',context)
 
-def createEvent(request):
+def event_create(request):
     if request.method == "POST":
         form = EventForm(request.POST)
 
@@ -80,7 +80,7 @@ def createEvent(request):
     return render(request, "events/createEvent.html", context)
 
 
-def edit_event(request, slug):
+def event_edit(request, slug):
     event = get_object_or_404(Event, slug=slug)
 
     if event.start_date <= timezone.now():
@@ -106,7 +106,7 @@ def edit_event(request, slug):
     return render(request, "events/editEvent.html", context )
 
 
-def cancelEvent(request, slug):
+def event_cancel(request, slug):
     event = get_object_or_404(Event, slug=slug)
 
     if request.method == "GET":
