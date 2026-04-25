@@ -61,10 +61,6 @@ class Event(models.Model):
     def is_upcoming(self):
         return self.start_datetime > timezone.now()
 
-   
-
-    
-
     class Meta:
          ordering = ['start_datetime']
 
