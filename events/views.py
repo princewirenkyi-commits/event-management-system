@@ -6,7 +6,7 @@ from attendees.models import Attendee
 from .forms import EventForm, EventRegistrationForm
  
  
-def homepage(request):
+def home(request):
     context = {
         'total_events':    Event.objects.filter(status='Published').count(),
         'total_attendees': Attendee.objects.filter(is_active=True).count(),
@@ -16,7 +16,7 @@ def homepage(request):
                                start_datetime__gt=timezone.now()
                            ).order_by('start_datetime')[:5],
     }
-    return render(request, 'homepage.html', context)
+    return render(request, 'home.html', context)
 
 
 def event_list(request):
@@ -121,6 +121,33 @@ def event_cancel(request, slug):
             messages.success(request, "Event cancelled successfully.")
 
         return redirect("event_detail", slug=event.slug)
+    
+def register_attendee(request, slug):
+    event = get_object_or_404(Event, slug=slug)
+    if request.method == 'POST':
+        form = EventRegistrationForm(request.POST, event=event)
+        if form.is_valid():
+            attendee = form.cleaned_data['attendee']
+            notes    = form.cleaned_data['notes']
+            EventAttendee.objects.create(event=event, attendee=attendee, notes=notes)
+            messages.success(request, f'{attendee.get_full_name()} registered!')
+            return redirect('event_detail', slug=slug)
+    else:
+        form = EventRegistrationForm(event=event)
+    return render(request, 'events/register_attendee.html', {'form': form, 'event': event})
+ 
+ 
+def unregister_attendee(request, slug, attendee_id):
+    event    = get_object_or_404(Event, slug=slug)
+    attendee = get_object_or_404(Attendee, attendee_id=attendee_id)
+    reg      = get_object_or_404(EventAttendee, event=event, attendee=attendee)
+    if request.method == 'POST':
+        reg.delete()
+        messages.success(request, f'{attendee.get_full_name()} unregistered.')
+        return redirect('event_detail', slug=slug)
+    return render(request, 'events/unregister_confirm.html',
+                  {'event': event, 'attendee': attendee})
+
     
 
 

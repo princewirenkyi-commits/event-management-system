@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class='confirm-box'>
+  <h1>Cancel Event</h1>
+  <p>Are you sure you want to cancel: <strong>{{ event.title }}</strong>?</p>
+  <p>This will set the event status to Cancelled. Registered attendees will not be automatically notified.</p>
+  <form method='POST'>
+    {% csrf_token %}
+    <button type='submit' class='btn btn-danger'>Yes, Cancel Event</button>
+    <a href="{% url 'event_detail' event.slug %}" class='btn btn-secondary'>Go Back</a>
+  </form>
+</div>
+{% endblock %}

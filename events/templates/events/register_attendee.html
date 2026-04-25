@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Register Attendee{% endblock %}
+{% block content %}
+<h1>Register Attendee for {{ event.title }}</h1>
+<p>Available slots: {{ event.available_slots }} / {{ event.max_attendees }}</p>
+<form method='POST' class='form-styled'>
+  {% csrf_token %}
+  {{ form.as_p }}
+  {% if form.non_field_errors %}
+    <div class='alert alert-error'>{{ form.non_field_errors }}</div>
+  {% endif %}
+  <button type='submit' class='btn btn-success'>Register</button>
+  <a href="{% url 'event_detail' event.slug %}" class='btn btn-secondary'>Cancel</a>
+</form>
+{% endblock %}

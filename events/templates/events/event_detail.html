@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}{{ event.title }}{% endblock %}
+{% block content %}
+<div class='detail-header'>
+  <h1>{{ event.title }}</h1>
+  <span class='badge badge-{{ event.status|lower }}'>{{ event.status }}</span>
+</div>
+<p>{{ event.description }}</p>
+<div class='detail-grid'>
+  <div><strong>Start:</strong> {{ event.start_datetime|date:'D, d M Y, H:i' }}</div>
+  <div><strong>End:</strong>   {{ event.end_datetime|date:'D, d M Y, H:i' }}</div>
+  <div><strong>Category:</strong> {{ event.category }}</div>
+  <div><strong>Type:</strong> {{ event.event_type }}</div>
+  <div><strong>Organizer:</strong> {{ event.organizer_name }} — {{ event.organizer_email }}</div>
+  <div><strong>Capacity:</strong> {{ event.registered_count }}/{{ event.max_attendees }}</div>
+</div>
+{% if event.venue_name %}
+  <p><strong>Venue:</strong> {{ event.venue_name }}, {{ event.venue_address }}</p>
+{% endif %}
+{% if event.meeting_link %}
+  <p><strong>Meeting Link:</strong> <a href='{{ event.meeting_link }}'>{{ event.meeting_link }}</a></p>
+{% endif %}
+<div class='action-buttons'>
+  <a href="{% url 'event_edit' event.slug %}" class='btn btn-primary'>Edit</a>
+  <a href="{% url 'register_attendee' event.slug %}" class='btn btn-success'>Register Attendee</a>
+  <a href="{% url 'event_cancel' event.slug %}" class='btn btn-danger'>Cancel Event</a>
+</div>
+<h2>Registered Attendees</h2>
+{% for reg in registrations %}
+  <div class='attendee-row'>
+    <span>{{ reg.attendee.get_full_name }} ({{ reg.attendee.email }})</span>
+    <a href="{% url 'unregister_attendee' event.slug reg.attendee.attendee_id %}" class='btn btn-sm btn-danger'>Remove</a>
+  </div>
+{% empty %}<p>No attendees registered yet.</p>{% endfor %}
+{% endblock %}
