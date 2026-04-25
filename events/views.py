@@ -17,111 +17,69 @@ def home(request):
                            ).order_by('start_datetime')[:5],
     }
     return render(request, 'home.html', context)
-
-
+ 
+ 
 def event_list(request):
     events = Event.objects.all()
-    category = request.GET.get('category')
-    event_type = request.GET.get('eventType')
-    event_status = request.GET.get('eventStatus')
-    if category:
-        events = Event.Objects.filter(category = category)
-        
-    if event_type:
-        events = Event.objects.filter(event_type= event_type)
-    
-    if event_status:
-        events = Event.objects.filter(event_status= event_status)
-        
-    context = {
-        "category": Event.CategoryChoices,
-        "event_type": Event.event_type_choices,
-        "event_status": Event.status_choices,
-    }
-    
-    return render(request, 'events/events.html',context)
-    
-
+    search = request.GET.get('search', '')
+    if search: events = events.filter(title__icontains=search)
+    category = request.GET.get('category', '')
+    if category: events = events.filter(category=category)
+    event_type = request.GET.get('event_type', '')
+    if event_type: events = events.filter(event_type=event_type)
+    status = request.GET.get('status', '')
+    if status: events = events.filter(status=status)
+    return render(request, 'events/event_list.html',
+                  {'events': events, 'search': search, 'category': category,
+                   'event_type': event_type, 'status': status})
+ 
+ 
 def event_detail(request, slug):
-    event_detail = get_object_or_404(Event, slug=slug)
-    
-    attendees = EventAttendee.object.filter(event = event)
-    AttendeeNumber = attendees.count()
-    Capacity = Event.max_attendees
-    
-    context = {
-        "event_detail": event_detail,
-        "atendees": attendees,
-        "AttendeeNUmber": AttendeeNumber,
-        "Capacity":Capacity,
-        
-    }
-    
-    return render(request, 'events/eventDetail.html',context)
-
+    event = get_object_or_404(Event, slug=slug)
+    registrations = EventAttendee.objects.filter(event=event).select_related('attendee')
+    return render(request, 'events/event_detail.html',
+                  {'event': event, 'registrations': registrations})
+ 
+ 
 def event_create(request):
-    if request.method == "POST":
+    if request.method == 'POST':
         form = EventForm(request.POST)
-
         if form.is_valid():
-            event = form.save(commit=False)
-            event.slug = slugify(event.title)
-            event.save()
-
-            return redirect("event_detail", slug=event.slug)
-
+            event = form.save()
+            messages.success(request, f'Event "{event.title}" created!')
+            return redirect('event_detail', slug=event.slug)
     else:
         form = EventForm()
-        
-    context = {
-        "form": form
-        }
-
-    return render(request, "events/createEvent.html", context)
-
-
+    return render(request, 'events/event_form.html', {'form': form, 'action': 'Create'})
+ 
+ 
 def event_edit(request, slug):
     event = get_object_or_404(Event, slug=slug)
-
-    if event.start_date <= timezone.now():
-        messages.error(request, "You cannot edit an event that has already started.")
-        return redirect("event_detail", slug=event.slug)
-
-    form = EventForm(request.POST or None, instance=event)
-
-    if request.method == "POST":
+    if event.start_datetime <= timezone.now():
+        messages.error(request, 'Cannot edit an event that has already started.')
+        return redirect('event_detail', slug=slug)
+    if request.method == 'POST':
+        form = EventForm(request.POST, instance=event)
         if form.is_valid():
-            updated_event = form.save(commit=False)
-            updated_event.slug = event.slug
-
-            updated_event.save()
-
-            return redirect("event_detail", slug=event.slug)
-        
-    context = {
-        "form": form,
-        "event": event
-    }
-
-    return render(request, "events/editEvent.html", context )
-
-
+            form.save()
+            messages.success(request, 'Event updated!')
+            return redirect('event_detail', slug=slug)
+    else:
+        form = EventForm(instance=event)
+    return render(request, 'events/event_form.html',
+                  {'form': form, 'action': 'Edit', 'event': event})
+ 
+ 
 def event_cancel(request, slug):
     event = get_object_or_404(Event, slug=slug)
-
-    if request.method == "GET":
-        return render(request, "events/cancelEvent.html", {"event": event})
-
-    if request.method == "POST":
-        if event.status == "cancelled":
-            messages.info(request, "Event is already cancelled.")
-        else:
-            event.status = "cancelled"
-            event.save()
-            messages.success(request, "Event cancelled successfully.")
-
-        return redirect("event_detail", slug=event.slug)
-    
+    if request.method == 'POST':
+        event.status = 'Cancelled'
+        event.save()
+        messages.warning(request, f'Event "{event.title}" cancelled.')
+        return redirect('event_list')
+    return render(request, 'events/event_cancel.html', {'event': event})
+ 
+ 
 def register_attendee(request, slug):
     event = get_object_or_404(Event, slug=slug)
     if request.method == 'POST':
@@ -147,12 +105,3 @@ def unregister_attendee(request, slug, attendee_id):
         return redirect('event_detail', slug=slug)
     return render(request, 'events/unregister_confirm.html',
                   {'event': event, 'attendee': attendee})
-
-    
-
-
-
-
-
-    
-    

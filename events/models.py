@@ -4,6 +4,7 @@ from django.utils.text import slugify
 from attendees.models import Attendee
 
 
+
 # Create your models here.
 class Event(models.Model):
     
@@ -68,19 +69,19 @@ class Event(models.Model):
     
     
     
-    class EventAttendee(models.Model):
-        event = models.ForeignKey(Event, on_delete = models.CASCADE)
-        attendee = models.ForeignKey(Attendee, on_delete=models.CASCADE)
-        registration_date = models.DateTimeField(auto_now_add=True)
-        attended = models.BooleanField(default= False)
-        notes = models.TextField(blank=True)
+class EventAttendee(models.Model):
+    event = models.ForeignKey(Event, on_delete = models.CASCADE)
+    attendee = models.ForeignKey(Attendee, on_delete=models.CASCADE)
+    registration_date = models.DateTimeField(auto_now_add=True)
+    attended = models.BooleanField(default= False)
+    notes = models.TextField(blank=True)
         
-        class Meta:
-            unique_together = ['event', 'attendee']
+    class Meta:
+        unique_together = ['event', 'attendee']
             
         
-        def __str__(self):
-            return str(self.attendee)
+    def __str__(self):
+        return str(self.attendee)
         
         
         
