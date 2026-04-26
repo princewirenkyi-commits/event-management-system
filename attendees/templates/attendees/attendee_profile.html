@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}{{ attendee.get_full_name }}{% endblock %}
+{% block content %}
+<div class='profile-header'>
+  <h1>{{ attendee.get_full_name }}</h1>
+  <span class='badge {% if attendee.is_active %}badge-active{% else %}badge-inactive{% endif %}'>
+    {% if attendee.is_active %}Active{% else %}Inactive{% endif %}
+  </span>
+</div>
+<div class='detail-grid'>
+  <div><strong>Attendee ID:</strong> {{ attendee.attendee_id }}</div>
+  <div><strong>Email:</strong> {{ attendee.email }}</div>
+  <div><strong>Phone:</strong> {{ attendee.phone_number }}</div>
+  <div><strong>Company:</strong> {{ attendee.company|default:'—' }}</div>
+  <div><strong>Job Title:</strong> {{ attendee.job_title|default:'—' }}</div>
+  <div><strong>Registered:</strong> {{ attendee.date_registered|date:'d M Y' }}</div>
+  <div><strong>Total Events:</strong> {{ attendee.events_registered }}</div>
+</div>
+<div class='action-buttons'>
+  <a href="{% url 'attendee_edit' attendee.attendee_id %}" class='btn btn-primary'>Edit Profile</a>
+  <a href="{% url 'attendee_deactivate' attendee.attendee_id %}" class='btn btn-danger'>Deactivate</a>
+</div>
+<h2>Registered Events</h2>
+{% for reg in registrations %}
+  <div class='event-card'>
+    <h3><a href="{% url 'event_detail' reg.event.slug %}">{{ reg.event.title }}</a></h3>
+    <p>{{ reg.event.start_datetime|date:'d M Y, H:i' }} &middot; {{ reg.event.category }}</p>
+    <span class='badge badge-{{ reg.event.status|lower }}'>{{ reg.event.status }}</span>
+  </div>
+{% empty %}<p>Not registered for any events.</p>{% endfor %}
+{% endblock %}

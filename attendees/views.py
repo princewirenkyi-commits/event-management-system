@@ -66,3 +66,4 @@ def attendee_deactivate(request, attendee_id):
         messages.warning(request, f'{attendee.get_full_name()} deactivated.')
         return redirect('attendee_list')
     return render(request, 'attendees/attendee_deactivate.html', {'attendee': attendee})
+
