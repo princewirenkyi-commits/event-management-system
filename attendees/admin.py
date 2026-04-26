@@ -8,3 +8,4 @@ class AttendeeAdmin(admin.ModelAdmin):
     list_filter   = ['is_active', 'date_registered']
     search_fields = ['first_name', 'last_name', 'email', 'company', 'attendee_id']
     list_per_page = 20
+

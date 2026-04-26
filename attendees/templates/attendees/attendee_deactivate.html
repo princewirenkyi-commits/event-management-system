@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class='confirm-box'>
+  <h1>Deactivate Attendee</h1>
+  <p>Deactivate <strong>{{ attendee.get_full_name }}</strong> ({{ attendee.email }})?</p>
+  <p>They will no longer appear in dropdowns for new registrations.</p>
+  <form method='POST'>
+    {% csrf_token %}
+    <button type='submit' class='btn btn-danger'>Yes, Deactivate</button>
+    <a href="{% url 'attendee_profile' attendee.attendee_id %}" class='btn btn-secondary'>Cancel</a>
+  </form>
+</div>
+{% endblock %}

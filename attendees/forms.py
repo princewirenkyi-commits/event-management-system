@@ -19,3 +19,4 @@ class AttendeeForm(forms.ModelForm):
         if qs.exists():
             raise forms.ValidationError('An attendee with this email already exists.')
         return email
+
