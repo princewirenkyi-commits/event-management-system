@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Check-in: {{ event.title }}{% endblock %}
+{% block content %}
+<div class='page-header'>
+  <h1>Check-in: {{ event.title }}</h1>
+  <span class='badge badge-published'>{{ checked_in_count }} checked in</span>
+</div>
+<form method='GET' class='filter-bar'>
+  <input type='text' name='q' value='{{ query }}' placeholder='Search by name, email, or booking ref...'>
+  <button type='submit' class='btn btn-primary'>Search</button>
+</form>
+<table class='data-table'>
+  <thead><tr>
+    <th>Reference</th><th>Attendee</th><th>Ticket</th><th>Payment</th><th>Checked In</th><th>Action</th>
+  </tr></thead>
+  <tbody>
+  {% for reg in registrations %}
+    <tr>
+      <td>{{ reg.booking_reference }}</td>
+      <td>{{ reg.attendee.get_full_name }}<br><small>{{ reg.attendee.email }}</small></td>
+      <td>{{ reg.ticket_type }}</td>
+      <td><span class='badge badge-{{ reg.payment_status|lower }}'>{{ reg.payment_status }}</span></td>
+      <td>
+        {% if reg.checked_in %}
+          <span class='badge badge-active'>{{ reg.check_in_time|date:'H:i' }}</span>
+        {% else %}
+          <span class='badge badge-inactive'>No</span>
+        {% endif %}
+      </td>
+      <td>
+        {% if not reg.checked_in and reg.is_valid %}
+          <a href="{% url 'checkin_attendee' reg.booking_reference %}" class='btn btn-sm btn-success'>Check In</a>
+        {% endif %}
+      </td>
+    </tr>
+  {% empty %}<tr><td colspan='6'>No registrations found.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endblock %}

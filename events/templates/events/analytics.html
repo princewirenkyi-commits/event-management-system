@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Analytics Dashboard{% endblock %}
+{% block content %}
+<h1>Analytics Dashboard</h1>
+ 
+<div class='stats-grid'>
+  <div class='stat-card'><h2>GHS {{ total_revenue }}</h2><p>Total Revenue</p></div>
+  <div class='stat-card'><h2>{{ paid_count }}</h2><p>Paid Bookings</p></div>
+  <div class='stat-card'><h2>{{ pending_count }}</h2><p>Pending Payments</p></div>
+  <div class='stat-card'><h2>{{ checkin_count }}</h2><p>Attendees Checked In</p></div>
+  <div class='stat-card'><h2>{{ checkin_rate }}%</h2><p>Check-in Rate</p></div>
+</div>
+ 
+<div class='detail-grid'>
+  <div>
+    <h2>Revenue by Ticket Type</h2>
+    <table class='data-table'>
+      <thead><tr><th>Ticket Type</th><th>Count</th><th>Revenue (GHS)</th></tr></thead>
+      <tbody>
+      {% for row in by_ticket %}
+        <tr><td>{{ row.ticket_type }}</td><td>{{ row.count }}</td><td>{{ row.revenue|default:'0' }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <h2>Bookings by Payment Method</h2>
+    <table class='data-table'>
+      <thead><tr><th>Method</th><th>Count</th></tr></thead>
+      <tbody>
+      {% for row in by_method %}
+        <tr><td>{{ row.payment_method }}</td><td>{{ row.count }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+ 
+<h2>Top Events by Registrations</h2>
+<table class='data-table'>
+  <thead><tr><th>Event</th><th>Registrations</th><th>Export</th></tr></thead>
+  <tbody>
+  {% for event in top_events %}
+    <tr>
+      <td><a href="{% url 'event_detail' event.slug %}">{{ event.title }}</a></td>
+      <td>{{ event.reg_count }}</td>
+      <td><a href="{% url 'export_csv' event.slug %}" class='btn btn-sm btn-secondary'>CSV</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
