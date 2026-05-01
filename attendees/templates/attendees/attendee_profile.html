@@ -14,7 +14,7 @@
   <div><strong>Company:</strong> {{ attendee.company|default:'—' }}</div>
   <div><strong>Job Title:</strong> {{ attendee.job_title|default:'—' }}</div>
   <div><strong>Registered:</strong> {{ attendee.date_registered|date:'d M Y' }}</div>
-  <div><strong>Total Events:</strong> {{ attendee.events_registered }}</div>
+  <div><strong>Total Events:</strong> {{ attendee.register_attendee }}</div>
 </div>
 <div class='action-buttons'>
   <a href="{% url 'attendee_edit' attendee.attendee_id %}" class='btn btn-primary'>Edit Profile</a>

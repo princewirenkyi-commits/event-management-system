@@ -105,3 +105,5 @@ def checkin_attendee(request, ref):
     return render(request, 'attendees/checkin_confirm.html', {'reg': reg})
 
 
+
+
