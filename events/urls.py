@@ -10,4 +10,11 @@ urlpatterns = [
     path('events/<slug:slug>/cancel/', views.event_cancel, name='event_cancel'),
     path('events/<slug:slug>/register-attendee/', views.register_attendee, name='register_attendee'),
     path('events/<slug:slug>/unregister/<str:attendee_id>/', views.unregister_attendee, name='unregister_attendee'),
+    path('events/<slug:slug>/book/', views.book_ticket, name='book_ticket'),
+    path('booking/<str:ref>/', views.booking_confirmation, name='booking_confirmation'),
+    path('booking/<str:ref>/cancel/', views.cancel_booking, name='cancel_booking'),
+    path('analytics/', views.analytics_dashboard, name='analytics'),
+    path('events/<slug:slug>/export-csv/', views.export_attendees_csv, name='export_csv'),
+
+ 
 ]

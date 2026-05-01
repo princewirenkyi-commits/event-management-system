@@ -1,10 +1,13 @@
 {% extends 'base.html' %}
+
 {% block title %}Attendees{% endblock %}
+
 {% block content %}
 <div class='page-header'>
   <h1>Attendees</h1>
   <a href="{% url 'attendee_register' %}" class='btn btn-primary'>+ Register Attendee</a>
 </div>
+
 <form method='GET' class='filter-bar'>
   <input type='text' name='search' value='{{ search }}' placeholder='Name, email, or company...'>
   <select name='status'>
@@ -14,23 +17,52 @@
   </select>
   <button type='submit' class='btn btn-secondary'>Filter</button>
 </form>
+
 <table class='data-table'>
-  <thead><tr>
-    <th>ID</th><th>Name</th><th>Email</th><th>Company</th><th>Events</th><th>Status</th><th>Actions</th>
-  </tr></thead>
+  <thead>
+    <tr>
+      <th>ID</th><th>Name</th><th>Email</th><th>Company</th><th>Events</th><th>Status</th><th>Actions</th>
+    </tr>
+  </thead>
+
   <tbody>
   {% for att in attendees %}
     <tr>
-      <td>{{ att.attendee_id }}</td>
-      <td><a href="{% url 'attendee_profile' att.attendee_id %}">{{ att.get_full_name }}</a></td>
+      <td>{{ att.attendee_id|default:att.pk }}</td>
+
+      <td>
+        {% if att.pk %}
+          <a href="{% url 'attendee_profile' att.pk %}">
+            {{ att.get_full_name }}
+          </a>
+        {% else %}
+          <span class="text-muted">Invalid attendee</span>
+        {% endif %}
+      </td>
+
       <td>{{ att.email }}</td>
       <td>{{ att.company|default:'-' }}</td>
-      <td>{{ att.events_registered }}</td>
-      <td><span class='badge {% if att.is_active %}badge-active{% else %}badge-inactive{% endif %}'>
-          {% if att.is_active %}Active{% else %}Inactive{% endif %}</span></td>
-      <td><a href="{% url 'attendee_edit' att.attendee_id %}" class='btn btn-sm btn-primary'>Edit</a></td>
+      <td>{{ att.register_attendee}}</td>
+
+      <td>
+        <span class='badge {% if att.is_active %}badge-active{% else %}badge-inactive{% endif %}'>
+          {% if att.is_active %}Active{% else %}Inactive{% endif %}
+        </span>
+      </td>
+
+      <td>
+        {% if att.pk %}
+          <a href="{% url 'attendee_edit' att.pk %}" class='btn btn-sm btn-primary'>Edit</a>
+        {% else %}
+          <span class="text-muted">N/A</span>
+        {% endif %}
+      </td>
     </tr>
-  {% empty %}<tr><td colspan='7'>No attendees found.</td></tr>{% endfor %}
+
+  {% empty %}
+    <tr><td colspan='7'>No attendees found.</td></tr>
+  {% endfor %}
   </tbody>
 </table>
+
 {% endblock %}
