@@ -197,4 +197,3 @@ def export_attendees_csv(request, slug):
         ])
     return response
 
-

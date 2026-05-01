@@ -31,6 +31,7 @@ class Event(models.Model):
     slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(max_length= 500)
     category = models.CharField(max_length=50, choices=CategoryChoices)
+    capacity = models.IntegerField(default= 100)
     event_type =models.CharField(max_length=20, choices= event_type_choices)
     organizer_name =models.CharField(max_length=200)
     organizer_email = models.EmailField()
@@ -64,9 +65,14 @@ class Event(models.Model):
 
     def is_upcoming(self):
         return self.start_datetime > timezone.now()
+    
+    def available_slots(self):
+        return self.capacity - self.attendees.count()
 
     class Meta:
          ordering = ['start_datetime']
+
+    
 
     
     

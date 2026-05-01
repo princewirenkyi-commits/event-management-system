@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views 
  
 urlpatterns = [
     path('', views.home, name='home'),
@@ -15,6 +15,6 @@ urlpatterns = [
     path('booking/<str:ref>/cancel/', views.cancel_booking, name='cancel_booking'),
     path('analytics/', views.analytics_dashboard, name='analytics'),
     path('events/<slug:slug>/export-csv/', views.export_attendees_csv, name='export_csv'),
-
+   
  
 ]
