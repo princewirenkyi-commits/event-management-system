@@ -6,6 +6,9 @@ from django.contrib import messages
 from django.db.models import Q
 from .models import Attendee
 from .forms import AttendeeForm
+from events.models import Registration
+from django.utils import timezone
+
  
  
 def attendee_list(request):
@@ -66,4 +69,39 @@ def attendee_deactivate(request, attendee_id):
         messages.warning(request, f'{attendee.get_full_name()} deactivated.')
         return redirect('attendee_list')
     return render(request, 'attendees/attendee_deactivate.html', {'attendee': attendee})
+
+def checkin_event(request, slug):
+    from events.models import Event
+    event = get_object_or_404(Event, slug=slug)
+    query = request.GET.get('q', '')
+    registrations = Registration.objects.filter(event=event, cancelled=False)
+    if query:
+        registrations = registrations.filter(
+            Q(attendee__first_name__icontains=query) |
+            Q(attendee__last_name__icontains=query)  |
+            Q(attendee__email__icontains=query)      |
+            Q(booking_reference__icontains=query)
+        )
+    checked_in_count = Registration.objects.filter(event=event, checked_in=True).count()
+    context = {
+        'event': event, 'registrations': registrations,
+        'query': query, 'checked_in_count': checked_in_count,
+    }
+    return render(request, 'attendees/checkin_event.html', context)
+ 
+ 
+def checkin_attendee(request, ref):
+    reg = get_object_or_404(Registration, booking_reference=ref)
+    if request.method == 'POST':
+        if reg.can_check_in():
+            reg.checked_in    = True
+            reg.check_in_time = timezone.now()
+            reg.save()
+            messages.success(request,
+                f'{reg.attendee.get_full_name()} checked in at {reg.check_in_time.strftime("%H:%M")}!')
+        else:
+            messages.error(request, 'Check-in not allowed: already checked in or booking invalid.')
+        return redirect('checkin_event', slug=reg.event.slug)
+    return render(request, 'attendees/checkin_confirm.html', {'reg': reg})
+
 

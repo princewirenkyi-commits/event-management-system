@@ -2,6 +2,9 @@ from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 from attendees.models import Attendee
+import uuid
+import string, random
+from django.db import models
 
 
 
@@ -83,6 +86,62 @@ class EventAttendee(models.Model):
     def __str__(self):
         return str(self.attendee)
         
+
+class Registration(models.Model):
+    TICKET_CHOICES = [
+        ('General', 'General'), ('VIP', 'VIP'), ('Early Bird', 'Early Bird'),
+        ('Student', 'Student'), ('Free', 'Free'),
+    ]
+    PAYMENT_STATUS_CHOICES = [
+        ('Pending', 'Pending'), ('Paid', 'Paid'),
+        ('Refunded', 'Refunded'), ('Cancelled', 'Cancelled'),
+    ]
+    PAYMENT_METHOD_CHOICES = [
+        ('Credit Card', 'Credit Card'), ('Mobile Money', 'Mobile Money'),
+        ('Bank Transfer', 'Bank Transfer'), ('Cash', 'Cash'), ('Free', 'Free'),
+    ]
+ 
+    event            = models.ForeignKey(Event, on_delete=models.CASCADE,
+                           related_name='registrations')
+    attendee         = models.ForeignKey('attendees.Attendee', on_delete=models.CASCADE,
+                           related_name='registrations')
+    ticket_type      = models.CharField(max_length=20, choices=TICKET_CHOICES, default='General')
+    ticket_price     = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    payment_status   = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='Pending')
+    payment_method   = models.CharField(max_length=30, choices=PAYMENT_METHOD_CHOICES, default='Free')
+    transaction_id   = models.CharField(max_length=100, blank=True)
+    booking_reference = models.CharField(max_length=15, unique=True, blank=True)
+    checked_in       = models.BooleanField(default=False)
+    check_in_time    = models.DateTimeField(null=True, blank=True)
+    notes            = models.TextField(blank=True)
+    cancelled        = models.BooleanField(default=False)
+    cancellation_date = models.DateTimeField(null=True, blank=True)
+    created_at       = models.DateTimeField(auto_now_add=True)
+ 
+    def generate_booking_reference(self):
+        chars = string.ascii_uppercase + string.digits
+        while True:
+            ref = 'BK-' + ''.join(random.choices(chars, k=8))
+            if not Registration.objects.filter(booking_reference=ref).exists():
+                return ref
+ 
+    def save(self, *args, **kwargs):
+        if not self.booking_reference:
+            self.booking_reference = self.generate_booking_reference()
+        super().save(*args, **kwargs)
+ 
+    def is_valid(self):
+        return not self.cancelled and self.payment_status in ('Paid', 'Free')
+ 
+    def can_check_in(self):
+        return self.is_valid() and not self.checked_in
+ 
+    def __str__(self):
+        return f'{self.booking_reference} — {self.attendee} @ {self.event}'
+ 
+    class Meta:
+        unique_together = ['event', 'attendee']
+
         
         
 

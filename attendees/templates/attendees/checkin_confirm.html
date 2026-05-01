@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class='confirm-box'>
+  <h1>Confirm Check-in</h1>
+  <p><strong>Attendee:</strong> {{ reg.attendee.get_full_name }}</p>
+  <p><strong>Event:</strong> {{ reg.event.title }}</p>
+  <p><strong>Reference:</strong> {{ reg.booking_reference }}</p>
+  <p><strong>Ticket:</strong> {{ reg.ticket_type }}</p>
+  <form method='POST'>
+    {% csrf_token %}
+    <button type='submit' class='btn btn-success'>Confirm Check-in</button>
+    <a href="{% url 'checkin_event' reg.event.slug %}" class='btn btn-secondary'>Cancel</a>
+  </form>
+</div>
+{% endblock %}

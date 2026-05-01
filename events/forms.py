@@ -2,6 +2,7 @@ from django import forms
 from django.utils.text import slugify
 from .models import Event, EventAttendee
 from attendees.models import Attendee
+from .models import Registration
  
 class EventForm(forms.ModelForm):
     class Meta:
@@ -62,3 +63,26 @@ class EventRegistrationForm(forms.Form):
             if EventAttendee.objects.filter(event=self.event, attendee=attendee).exists():
                 raise forms.ValidationError('Attendee is already registered.')
         return cleaned_data
+
+class RegistrationForm(forms.ModelForm):
+    class Meta:
+        model  = Registration
+        fields = ['attendee', 'ticket_type', 'ticket_price', 'payment_method',
+                  'transaction_id', 'notes']
+ 
+    def __init__(self, *args, event=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.event = event
+        self.fields['attendee'].queryset = Attendee.objects.filter(is_active=True)
+ 
+    def clean(self):
+        cleaned_data = super().clean()
+        attendee = cleaned_data.get('attendee')
+        if self.event and self.event.available_slots() <= 0:
+            raise forms.ValidationError('This event is full.')
+        if attendee and self.event:
+            if Registration.objects.filter(event=self.event,
+                    attendee=attendee, cancelled=False).exists():
+                raise forms.ValidationError('Attendee already has a booking for this event.')
+        return cleaned_data
+

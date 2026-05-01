@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Booking Confirmed{% endblock %}
+{% block content %}
+<div class='confirm-box'>
+  <h1>Booking Confirmed!</h1>
+  <p><strong>Reference:</strong> {{ reg.booking_reference }}</p>
+  <p><strong>Event:</strong> {{ reg.event.title }}</p>
+  <p><strong>Attendee:</strong> {{ reg.attendee.get_full_name }}</p>
+  <p><strong>Ticket Type:</strong> {{ reg.ticket_type }}</p>
+  <p><strong>Price:</strong> GHS {{ reg.ticket_price }}</p>
+  <p><strong>Payment:</strong> {{ reg.payment_status }} via {{ reg.payment_method }}</p>
+  <div class='form-actions'>
+    <a href="{% url 'event_detail' reg.event.slug %}" class='btn btn-primary'>View Event</a>
+    <a href="{% url 'cancel_booking' reg.booking_reference %}" class='btn btn-danger'>Cancel Booking</a>
+  </div>
+</div>
+{% endblock %}

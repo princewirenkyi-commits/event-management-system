@@ -4,7 +4,13 @@ from django.utils import timezone
 from .models import Event, EventAttendee
 from attendees.models import Attendee
 from .forms import EventForm, EventRegistrationForm
- 
+from .models import Registration
+from .forms import RegistrationForm
+from django.utils import timezone as tz
+from django.http import HttpResponse
+from django.db.models import Sum, Count, Q
+
+
  
 def home(request):
     context = {
@@ -105,3 +111,90 @@ def unregister_attendee(request, slug, attendee_id):
         return redirect('event_detail', slug=slug)
     return render(request, 'events/unregister_confirm.html',
                   {'event': event, 'attendee': attendee})
+
+
+def book_ticket(request, slug):
+    event = get_object_or_404(Event, slug=slug)
+    if request.method == 'POST':
+        form = RegistrationForm(request.POST, event=event)
+        if form.is_valid():
+            reg = form.save(commit=False)
+            reg.event = event
+            reg.save()
+            messages.success(request, f'Booking confirmed! Reference: {reg.booking_reference}')
+            return redirect('booking_confirmation', ref=reg.booking_reference)
+    else:
+        form = RegistrationForm(event=event)
+    return render(request, 'events/book_ticket.html', {'form': form, 'event': event})
+ 
+ 
+def booking_confirmation(request, ref):
+    reg = get_object_or_404(Registration, booking_reference=ref)
+    return render(request, 'events/booking_confirmation.html', {'reg': reg})
+ 
+ 
+def cancel_booking(request, ref):
+    reg = get_object_or_404(Registration, booking_reference=ref)
+    if request.method == 'POST':
+        reg.cancelled = True
+        reg.cancellation_date = tz.now()
+        reg.save()
+        messages.warning(request, f'Booking {ref} has been cancelled.')
+        return redirect('event_detail', slug=reg.event.slug)
+    return render(request, 'events/cancel_booking.html', {'reg': reg})
+
+def analytics_dashboard(request):
+    from decimal import Decimal
+    events = Event.objects.filter(status='Published')
+    regs   = Registration.objects.filter(cancelled=False)
+ 
+    total_revenue   = regs.filter(payment_status='Paid').aggregate(
+                          total=Sum('ticket_price'))['total'] or Decimal('0')
+    paid_count      = regs.filter(payment_status='Paid').count()
+    pending_count   = regs.filter(payment_status='Pending').count()
+    checkin_count   = regs.filter(checked_in=True).count()
+    total_regs      = regs.count()
+    checkin_rate    = round((checkin_count / total_regs * 100), 1) if total_regs else 0
+ 
+    by_ticket = regs.values('ticket_type').annotate(
+                    count=Count('id'), revenue=Sum('ticket_price')).order_by('-count')
+    by_method = regs.values('payment_method').annotate(count=Count('id')).order_by('-count')
+ 
+    top_events = Event.objects.annotate(
+                     reg_count=Count('registrations',
+                         filter=Q(registrations__cancelled=False))
+                 ).order_by('-reg_count')[:5]
+ 
+    context = {
+        'total_revenue': total_revenue, 'paid_count': paid_count,
+        'pending_count': pending_count, 'checkin_count': checkin_count,
+        'checkin_rate': checkin_rate, 'by_ticket': by_ticket,
+        'by_method': by_method, 'top_events': top_events,
+    }
+    return render(request, 'events/analytics.html', context)
+ 
+ 
+def export_attendees_csv(request, slug):
+    event = get_object_or_404(Event, slug=slug)
+    regs  = Registration.objects.filter(event=event,
+                cancelled=False).select_related('attendee')
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{slug}-attendees.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['Booking Ref', 'Name', 'Email', 'Company',
+                     'Ticket', 'Price', 'Payment', 'Checked In', 'Check-in Time'])
+    for reg in regs:
+        writer.writerow([
+            reg.booking_reference,
+            reg.attendee.get_full_name(),
+            reg.attendee.email,
+            reg.attendee.company,
+            reg.ticket_type,
+            reg.ticket_price,
+            reg.payment_status,
+            'Yes' if reg.checked_in else 'No',
+            reg.check_in_time.strftime('%d/%m/%Y %H:%M') if reg.check_in_time else '',
+        ])
+    return response
+
+
